@@ -1,8 +1,6 @@
 package org.willonwealth.model;
 
 public enum AccreditationType {
-    PENDING,
-    CONFIRMED,
-    EXPIRED,
-    FAILED;
+    BY_INCOME,
+    BY_NET_WORTH;
 }
