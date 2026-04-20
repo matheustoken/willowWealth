@@ -1,55 +1,47 @@
 package org.willonwealth.model;
 
-import io.quarkus.mongodb.panache.common.MongoEntity;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.bson.BsonType;
-import org.bson.codecs.pojo.annotations.BsonId;
-import org.bson.codecs.pojo.annotations.BsonRepresentation;
+import jakarta.persistence.*;
 
 import java.time.Instant;
-import java.util.Objects;
+import java.util.UUID;
 
-@MongoEntity(collection = "accreditations")
+@Entity
+@Table(name = "accreditations")
 public class Accreditation {
-    public Accreditation() {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    public UUID getAccreditationId() {
+        return accreditationId;
     }
 
-    @BsonId
-    @BsonRepresentation(BsonType.STRING)
-    public String id;
-
-    public String getId() {
-        return id;
+    public void setAccreditationId(UUID accreditationId) {
+        this.accreditationId = accreditationId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    private UUID accreditationId;
+
+    private String userId;
+
+    @Enumerated(EnumType.STRING)
+    private AccreditationStatus status;
+
+    @Enumerated(EnumType.STRING)
+    private AccreditationType type;
+
+    @Embedded
+    private Document documents;
+
+    private Instant lastUpdated;
+
+    public Instant getLastUpdated() {
+        return lastUpdated;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public AccreditationStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(AccreditationStatus status) {
-        this.status = status;
-    }
-
-    public AccreditationType getType() {
-        return type;
-    }
-
-    public void setType(AccreditationType type) {
-        this.type = type;
+    public void setLastUpdated(Instant lastUpdated) {
+        this.lastUpdated = lastUpdated;
     }
 
     public Document getDocuments() {
@@ -60,42 +52,47 @@ public class Accreditation {
         this.documents = documents;
     }
 
-    public Instant getLastUpdated() {
-        return lastUpdated;
+    public AccreditationType getType() {
+        return type;
     }
 
-    public void setLastUpdated(Instant lastUpdated) {
-        this.lastUpdated = lastUpdated;
+    public void setType(AccreditationType type) {
+        this.type = type;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Accreditation that = (Accreditation) o;
-        return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && status == that.status && type == that.type && Objects.equals(documents, that.documents) && Objects.equals(lastUpdated, that.lastUpdated);
+    public AccreditationStatus getStatus() {
+        return status;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, userId, status, type, documents, lastUpdated);
+    public void setStatus(AccreditationStatus status) {
+        this.status = status;
     }
 
-    public String userId;
+    public String getUserId() {
+        return userId;
+    }
 
-    public AccreditationStatus status;
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
-    public AccreditationType type;
+    public Long getId() {
+        return id;
+    }
 
-    public Document documents;
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public Accreditation(Instant lastUpdated, Document documents, AccreditationType type, AccreditationStatus status, String userId, String id) {
+    public Accreditation(Long id, Instant lastUpdated, Document documents, AccreditationType type, AccreditationStatus status, String userId) {
+        this.id = id;
         this.lastUpdated = lastUpdated;
         this.documents = documents;
         this.type = type;
         this.status = status;
         this.userId = userId;
-        this.id = id;
     }
 
-    public Instant lastUpdated;
+    public Accreditation() {
+    }
 }

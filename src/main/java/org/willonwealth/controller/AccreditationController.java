@@ -1,34 +1,65 @@
 package org.willonwealth.controller;
 
-import io.smallrye.mutiny.Uni;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import org.willonwealth.dto.request.CreateAccreditationDto;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.willonwealth.dto.request.AccreditationRequestDTO;
+import org.willonwealth.dto.request.FinalizeRequestDTO;
 import org.willonwealth.dto.response.AccreditationIdResponse;
+import org.willonwealth.dto.response.AccreditationListResponse;
 import org.willonwealth.service.AccreditationService;
 
-import java.util.Map;
+import java.net.URI;
+import java.util.UUID;
 
-@Path("/user")
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
+@RestController
+@RequestMapping("/user")
 public class AccreditationController {
 
-    private AccreditationService accreditationService;
+    // 1. Injeção por construtor (Boa prática: campo final)
+    private final AccreditationService service;
 
-    public AccreditationController(AccreditationService accreditationService) {
-        this.accreditationService = accreditationService;
+    public AccreditationController(AccreditationService service) {
+        this.service = service;
     }
 
-    @POST
-    @Path("/accreditation")
-    public Uni<AccreditationIdResponse> createAccreditation(@Valid CreateAccreditationDto dto) {
-        return accreditationService.createAccreditation(dto)
-                .map(AccreditationIdResponse::new);
+    /**
+     * Cria uma nova acreditação.
+     * Rota: POST /user/accreditation
+     */
+    @PostMapping("/accreditation")
+    public ResponseEntity<AccreditationIdResponse> create(@Valid @RequestBody AccreditationRequestDTO dto) {
+
+        AccreditationIdResponse id = service.createAccreditation(dto);
+        AccreditationIdResponse response = new AccreditationIdResponse(id.accreditationId());
+
+        URI uri = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(id)
+                .toUri();
+
+        return ResponseEntity.created(uri).body(response);
+    }
+
+    @PutMapping("/accreditation/{accreditationId}")
+    public ResponseEntity<AccreditationIdResponse> finalize(
+            @PathVariable UUID accreditationId,
+            @Valid @RequestBody FinalizeRequestDTO dto) {
+
+        service.finalizeAccreditation(accreditationId, dto.outcome());
+        return ResponseEntity.ok(new AccreditationIdResponse(accreditationId));
+    }
+
+    /**
+     * Lista as acreditações de um usuário.
+     * Rota: GET /user/{userId}/accreditation
+     */
+    @GetMapping("/{userId}/accreditation")
+    public ResponseEntity<AccreditationListResponse> getByUser(@PathVariable String userId) {
+
+        AccreditationListResponse response = service.getUserAccreditations(userId);
+        return ResponseEntity.ok(response);
     }
 }

@@ -1,33 +1,23 @@
 package org.willonwealth.repository;
 
-import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoRepository;
-import io.quarkus.panache.common.Parameters;
-import io.smallrye.mutiny.Uni;
-import jakarta.enterprise.context.ApplicationScoped;
-import org.bson.types.ObjectId;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.willonwealth.model.Accreditation;
+import org.willonwealth.model.AccreditationStatus;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-@ApplicationScoped
-public class AccreditationRepository implements ReactivePanacheMongoRepository<Accreditation> {
+public interface AccreditationRepository extends JpaRepository<Accreditation, Long> {
 
-    public Uni<List<Accreditation>> findByUserId(String userId) {
-        return list("userId", userId);
-    }
+    List<Accreditation> findByUserId(String userId);
 
-    public Uni<Accreditation> findById(String id) {
-        return findById(new ObjectId(id));
-    }
+    boolean existsByUserIdAndStatus(String userId, AccreditationStatus status);
 
-    public Uni<Accreditation> findPendingByUserId(String userId) {
-        // Corrigido: Removido o Optional para facilitar o fluxo no Service
-        // Também usei o Enum AccreditationStatus.PENDING em vez de String pura se possível
-        return find("userId = :uId and status = :st",
-                Parameters.with("uId", userId)
-                        .and("st", "PENDING"))
-                .firstResult();
-    }
+    Optional<Accreditation> findByAccreditationId(UUID accreditationId);
+
+    List<Accreditation> findByStatusAndLastUpdatedBefore(AccreditationStatus status, Instant date);
+
 
 }
