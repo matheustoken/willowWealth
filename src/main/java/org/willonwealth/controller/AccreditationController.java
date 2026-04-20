@@ -17,17 +17,12 @@ import java.util.UUID;
 @RequestMapping("/user")
 public class AccreditationController {
 
-    // 1. Injeção por construtor (Boa prática: campo final)
     private final AccreditationService service;
 
     public AccreditationController(AccreditationService service) {
         this.service = service;
     }
 
-    /**
-     * Cria uma nova acreditação.
-     * Rota: POST /user/accreditation
-     */
     @PostMapping("/accreditation")
     public ResponseEntity<AccreditationIdResponse> create(@Valid @RequestBody AccreditationRequestDTO dto) {
 
@@ -52,10 +47,6 @@ public class AccreditationController {
         return ResponseEntity.ok(new AccreditationIdResponse(accreditationId));
     }
 
-    /**
-     * Lista as acreditações de um usuário.
-     * Rota: GET /user/{userId}/accreditation
-     */
     @GetMapping("/{userId}/accreditation")
     public ResponseEntity<AccreditationListResponse> getByUser(@PathVariable String userId) {
 
