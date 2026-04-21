@@ -19,5 +19,4 @@ public interface AccreditationRepository extends JpaRepository<Accreditation, Lo
 
     List<Accreditation> findByStatusAndLastUpdatedBefore(AccreditationStatus status, Instant date);
 
-
 }

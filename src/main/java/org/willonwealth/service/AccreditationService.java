@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-
 @Service
 public class AccreditationService {
 
@@ -128,6 +127,5 @@ public class AccreditationService {
     private void registerAuditLog(UUID id, AccreditationStatus status) {
         auditRepository.save(new AccreditationAuditLog((id), status));
     }
-
 
 }

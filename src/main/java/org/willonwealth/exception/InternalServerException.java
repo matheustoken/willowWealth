@@ -1,7 +1,5 @@
 package org.willonwealth.exception;
 
-import org.springframework.http.HttpStatus;
-
 import java.util.List;
 
 public class InternalServerException extends RuntimeException {
