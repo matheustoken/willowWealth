@@ -4,6 +4,8 @@
 
 This project is a Java-based Accreditation Service built for a financial compliance platform. The service is designed to manage the lifecycle of investor accreditations, ensuring that users can only have one active request and enforcing a strict state machine for document verification and status transitions.
 
+To run the project run the command: ./start-service.sh
+
 ---
 
 ## 🧩 Features
