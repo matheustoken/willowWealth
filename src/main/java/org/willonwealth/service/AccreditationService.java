@@ -8,6 +8,9 @@ import org.springframework.web.server.ResponseStatusException;
 import org.willonwealth.dto.request.AccreditationRequestDTO;
 import org.willonwealth.dto.response.AccreditationIdResponse;
 import org.willonwealth.dto.response.AccreditationListResponse;
+import org.willonwealth.exception.BadRequestException;
+import org.willonwealth.exception.ResourceNotFoundException;
+import org.willonwealth.exception.ConflictException;
 import org.willonwealth.mapper.AccreditationMapper;
 import org.willonwealth.model.Accreditation;
 import org.willonwealth.model.AccreditationAuditLog;
@@ -39,7 +42,8 @@ public class AccreditationService {
     public AccreditationIdResponse createAccreditation(AccreditationRequestDTO dto) {
 
         if (repository.existsByUserIdAndStatus(dto.userId(), AccreditationStatus.PENDING)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User already has PENDING accreditation");
+            throw new ConflictException("User already has PENDING accreditation",
+                    List.of("User ID: " + dto.userId()));
         }
 
         Accreditation acc = mapper.toEntity(dto);
@@ -53,21 +57,31 @@ public class AccreditationService {
     }
 
     public void finalizeAccreditation(UUID accreditationId, AccreditationStatus outcome) {
+
         Accreditation acc = repository.findByAccreditationId(accreditationId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Accreditation not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Accreditation not found",
+                        List.of("The provided UUID " + accreditationId + " does not exist in our records.")));
 
         if (acc.getStatus() == AccreditationStatus.FAILED) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "A FAILED accreditation status should not be updateable.");
+            throw new BadRequestException("A FAILED accreditation status should not be updateable.",
+                    List.of("Current status: FAILED", "Target status: " + outcome));
+        }
+
+        if (acc.getStatus() == AccreditationStatus.EXPIRED) {
+            throw new BadRequestException("A EXPIRED accreditation status should not be updateable.",
+                    List.of("Current status: EXPIRED", "Target status: " + outcome));
         }
 
         if (acc.getStatus() == AccreditationStatus.CONFIRMED && outcome != AccreditationStatus.EXPIRED) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "A CONFIRMED accreditation can only be updated to EXPIRED.");
+            throw new BadRequestException("A CONFIRMED accreditation can only be updated to EXPIRED.",
+                    List.of("Invalid transition from CONFIRMED to " + outcome));
         }
 
         acc.setStatus(outcome);
         acc.setLastUpdated(Instant.now());
         repository.save(acc);
         registerAuditLog(acc.getAccreditationId(), outcome);
+
     }
 
     public AccreditationListResponse getUserAccreditations(String userId) {
@@ -90,11 +104,7 @@ public class AccreditationService {
         return response;
     }
 
-    private void registerAuditLog(UUID id, AccreditationStatus status) {
-        auditRepository.save(new AccreditationAuditLog(String.valueOf(id), status));
-    }
-
-    @Scheduled(fixedRate = 60000) // Executa a cada 1 minuto (ajuste conforme necessário)
+    @Scheduled(fixedRate = 60000)
     @Transactional
     public void expireOldAccreditations() {
 
@@ -113,6 +123,10 @@ public class AccreditationService {
 
             System.out.println("Scheduler: Accreditation " + acc.getAccreditationId() + " has expired.");
         }
+    }
+
+    private void registerAuditLog(UUID id, AccreditationStatus status) {
+        auditRepository.save(new AccreditationAuditLog((id), status));
     }
 
 

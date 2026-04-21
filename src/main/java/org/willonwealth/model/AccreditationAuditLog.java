@@ -19,16 +19,10 @@ public class AccreditationAuditLog {
 
     private Instant changedAt;
 
-    public AccreditationAuditLog() {
-    }
-
     public AccreditationAuditLog(UUID accreditationId, AccreditationStatus status) {
         this.accreditationId = accreditationId;
         this.statusChangedTo = status;
         this.changedAt = Instant.now();
-    }
-
-    public AccreditationAuditLog(String id, AccreditationStatus status) {
     }
 
     public Long getId() {
